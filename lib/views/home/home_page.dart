@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:get/route_manager.dart';
 import 'package:keep_word/controllers/home/home_page_controller.dart';
@@ -12,6 +13,9 @@ class HomePage extends GetView<HomePageController> {
       appBar: AppBar(
         backgroundColor: ThemeData.dark().scaffoldBackgroundColor,
         elevation: 0.0,
+        title: const Text(
+          " KeepWord ",
+        ),
         actions: <Widget>[
           PopupMenuButton<String>(
             shape: const RoundedRectangleBorder(
@@ -34,6 +38,10 @@ class HomePage extends GetView<HomePageController> {
                 case "Not":
                   showAddNoteDialog(context, controller);
                   break;
+                case "Parola":
+                  showGeneratePasswordDialog(context, controller);
+                  break;
+
                 default:
               }
             },
@@ -60,8 +68,19 @@ class HomePage extends GetView<HomePageController> {
             return SingleChildScrollView(
               physics: const ScrollPhysics(),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("hesap"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 32),
+                    child: Text(
+                      controller.accountsList.isEmpty ? "" : "Hesap",
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -128,7 +147,17 @@ class HomePage extends GetView<HomePageController> {
                           ),
                         )),
                   ),
-                  const Text("card"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 32),
+                    child: Text(
+                      controller.cardsList.isEmpty ? "" : "Kart",
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -137,6 +166,7 @@ class HomePage extends GetView<HomePageController> {
                     itemBuilder: ((context, index) => Padding(
                           padding: const EdgeInsets.all(4.0),
                           child: ListTile(
+                            isThreeLine: true,
                             shape: const RoundedRectangleBorder(
                               side: BorderSide(
                                   color: Color.fromARGB(255, 20, 20, 20)),
@@ -150,13 +180,13 @@ class HomePage extends GetView<HomePageController> {
                               spacing: 12.0,
                               children: [
                                 Text(
-                                  controller.cardsList[index].nameSurname ?? "",
-                                ),
-                                Text(
                                   controller.cardsList[index].cardNo ?? "",
                                 ),
                                 Text(
                                   controller.cardsList[index].validThru ?? "",
+                                ),
+                                Text(
+                                  controller.cardsList[index].nameSurname ?? "",
                                 ),
                                 Text(
                                   controller.cardsList[index].cvv == null
@@ -177,7 +207,7 @@ class HomePage extends GetView<HomePageController> {
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
-                                          controller.deleteAccount(index),
+                                          controller.deleteCard(index),
                                       child: const Text(
                                         "Evet",
                                         style: TextStyle(
@@ -196,7 +226,17 @@ class HomePage extends GetView<HomePageController> {
                           ),
                         )),
                   ),
-                  const Text("note"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 32),
+                    child: Text(
+                      controller.notesList.isEmpty ? "" : "Not",
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.deepPurpleAccent,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
                   ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
@@ -232,7 +272,7 @@ class HomePage extends GetView<HomePageController> {
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
-                                          controller.deleteAccount(index),
+                                          controller.deleteNote(index),
                                       child: const Text(
                                         "Evet",
                                         style: TextStyle(
@@ -251,7 +291,6 @@ class HomePage extends GetView<HomePageController> {
                           ),
                         )),
                   ),
-                  const Text("sadasdads"),
                 ],
               ),
             );
@@ -265,26 +304,17 @@ class HomePage extends GetView<HomePageController> {
 Future<Object?> showAddAccountDialog(
     BuildContext context, HomePageController controller) {
   return showGeneralDialog(
-      context: context,
-      pageBuilder: ((context, animation, secondaryAnimation) {
-        return Scaffold(
-          body: SafeArea(
-            child: SizedBox.expand(
+    context: context,
+    pageBuilder: ((context, animation, secondaryAnimation) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Hesap"),
+        ),
+        body: SafeArea(
+          child: SizedBox.expand(
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.close,
-                          ),
-                          onPressed: () {
-                            Get.back();
-                          },
-                        ),
-                      )),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
@@ -310,7 +340,7 @@ Future<Object?> showAddAccountDialog(
                         return TextFormField(
                           obscureText: controller.isVisible,
                           decoration: InputDecoration(
-                            hintText: "Şifre",
+                            labelText: "Şifre",
                             suffixIcon: IconButton(
                               icon: Icon(controller.isVisible
                                   ? Icons.visibility
@@ -322,12 +352,12 @@ Future<Object?> showAddAccountDialog(
                         );
                       })),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton(
                         onPressed: controller.addAccount,
-                        child: const Text("Oluştur"),
+                        child: const Text("Kaydet"),
                       ),
                     ),
                   ),
@@ -335,36 +365,25 @@ Future<Object?> showAddAccountDialog(
               ),
             ),
           ),
-        );
-      }));
+        ),
+      );
+    }),
+  );
 }
 
 Future<Object?> showAddCardDialog(
     BuildContext context, HomePageController controller) {
   return showGeneralDialog(
-      context: context,
-      pageBuilder: ((context, animation, secondaryAnimation) {
-        return Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: SafeArea(
-            child: SizedBox.expand(
+    context: context,
+    pageBuilder: ((context, animation, secondaryAnimation) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Kart")),
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: SizedBox.expand(
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          const Text("Kart"),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                            ),
-                            onPressed: () {
-                              Get.back();
-                            },
-                          ),
-                        ],
-                      )),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
@@ -398,7 +417,7 @@ Future<Object?> showAddCardDialog(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: "Cvv"),
+                        decoration: const InputDecoration(hintText: "CVV"),
                         onChanged: controller.cvvChanged),
                   ),
                   Padding(
@@ -407,7 +426,7 @@ Future<Object?> showAddCardDialog(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton(
                         onPressed: controller.addCard,
-                        child: const Text("Oluştur"),
+                        child: const Text("Kaydet"),
                       ),
                     ),
                   ),
@@ -415,18 +434,24 @@ Future<Object?> showAddCardDialog(
               ),
             ),
           ),
-        );
-      }));
+        ),
+      );
+    }),
+  );
 }
 
 Future<Object?> showAddNoteDialog(
     BuildContext context, HomePageController controller) {
   return showGeneralDialog(
-      context: context,
-      pageBuilder: ((context, animation, secondaryAnimation) {
-        return Scaffold(
-          body: SafeArea(
-            child: SizedBox.expand(
+    context: context,
+    pageBuilder: ((context, animation, secondaryAnimation) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Not"),
+        ),
+        body: SafeArea(
+          child: SizedBox.expand(
+            child: SingleChildScrollView(
               child: Column(
                 children: [
                   Padding(
@@ -446,45 +471,23 @@ Future<Object?> showAddNoteDialog(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
                         decoration: const InputDecoration(hintText: "Başlık"),
-                        onChanged: controller.accountTitleChanged),
+                        onChanged: controller.noteTitleChanged),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
-                        decoration:
-                            const InputDecoration(hintText: "Kullanıcı Adı"),
-                        onChanged: controller.usernameChanged),
+                        minLines: 3,
+                        maxLines: 5,
+                        decoration: const InputDecoration(hintText: "Not"),
+                        onChanged: controller.descriptionChanged),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: TextFormField(
-                        decoration: const InputDecoration(hintText: "Email"),
-                        onChanged: controller.emailChanged),
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: GetBuilder<HomePageController>(builder: (_) {
-                        return TextFormField(
-                          obscureText: controller.isVisible,
-                          decoration: InputDecoration(
-                            hintText: "Şifre",
-                            suffixIcon: IconButton(
-                              icon: Icon(controller.isVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                              onPressed: controller.obscureText,
-                            ),
-                          ),
-                          onChanged: controller.passwordChanged,
-                        );
-                      })),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton(
-                        onPressed: controller.addAccount,
-                        child: const Text("Oluştur"),
+                        onPressed: controller.addNote,
+                        child: const Text("Kaydet"),
                       ),
                     ),
                   ),
@@ -492,6 +495,117 @@ Future<Object?> showAddNoteDialog(
               ),
             ),
           ),
-        );
-      }));
+        ),
+      );
+    }),
+  );
+}
+
+Future<Object?> showGeneratePasswordDialog(
+    BuildContext context, HomePageController controller) {
+  return showGeneralDialog(
+    context: context,
+    pageBuilder: ((context, animation, secondaryAnimation) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Parola"),
+        ),
+        body: SafeArea(
+          child: SizedBox.expand(
+            child: Obx(
+              () => SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: TextFormField(
+                        controller: controller.generatedPasswordController,
+                        readOnly: true,
+                        enableInteractiveSelection: false,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                              borderSide:
+                                  const BorderSide(color: Colors.black87),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                              borderSide: const BorderSide(color: Colors.blue),
+                            ),
+                            suffixIcon: IconButton(
+                                onPressed: () {
+                                  final data = ClipboardData(
+                                      text: controller
+                                          .generatedPasswordController.text);
+                                  Clipboard.setData(data);
+
+                                  const snackbar =
+                                      SnackBar(content: Text("Password Copy"));
+
+                                  ScaffoldMessenger.of(context)
+                                    ..removeCurrentSnackBar()
+                                    ..showSnackBar(snackbar);
+                                },
+                                icon: const Icon(Icons.copy))),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: Column(children: [
+                        Row(
+                          children: [
+                            Switch(
+                                activeColor: Colors.blue,
+                                value: controller.isLetter.value,
+                                onChanged: controller.isLetterChanged),
+                            const Text("Harf"),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Switch(
+                              activeColor: Colors.blue,
+                              value: controller.isNumber.value,
+                              onChanged: controller.isNumberChanged,
+                            ),
+                            const Text("Sayı"),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Switch(
+                              activeColor: Colors.blue,
+                              value: controller.isSpecial.value,
+                              onChanged: controller.isSpecialChanged,
+                            ),
+                            const Text("Özel Karakter"),
+                          ],
+                        ),
+                      ]),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 32),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            controller.generatePassword(
+                                controller.isLetter.value,
+                                controller.isNumber.value,
+                                controller.isSpecial.value);
+                          },
+                          child: const Text("Oluştur"),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }),
+  );
 }

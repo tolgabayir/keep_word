@@ -1,3 +1,8 @@
+import 'dart:math';
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:get/get_rx/get_rx.dart';
 import 'package:get/route_manager.dart';
 import 'package:keep_word/base/controller/base_controller.dart';
 import 'package:keep_word/models/Account.dart';
@@ -7,24 +12,38 @@ import 'package:keep_word/services/storage/shared_preferences_storage_repository
 import 'package:keep_word/services/storage/uuid.dart';
 
 class HomePageController extends BaseController {
+  //hesap degiskenleri
   String? accountTitle;
   String? username;
   String? email;
   String? password;
+  //kart degiskenleri
   String? cardTitle;
   String? nameSurname;
   String? cardNo;
   String? validThru;
   String? cvv;
+  //not degiskenleri
   String? noteTitle;
   String? desc;
+  //
   bool isVisible = false;
-  final noteTypesList = ["Hesap", "Kart", "Not"];
-  LocalStorageManager storageManager = LocalStorageManager.instance;
-  IdGenerator idGenerator = IdGenerator();
+
+  //sifre uretici degiskenleri
+  final generatedPasswordController = TextEditingController();
+  String? generatedPassword;
+  var isNumber = true.obs;
+  var isSpecial = true.obs;
+  var isLetter = true.obs;
+  int? passwordGenerateLength;
+
+  final noteTypesList = ["Hesap", "Kart", "Not", "Parola"];
   final accountsList = <Account>[];
   final cardsList = <Card>[];
   final notesList = <Note>[];
+
+  LocalStorageManager storageManager = LocalStorageManager.instance;
+  IdGenerator idGenerator = IdGenerator();
 
   @override
   void onInit() async {
@@ -33,7 +52,6 @@ class HomePageController extends BaseController {
   }
 
   void accountTitleChanged(String title) => accountTitle = title;
-  void noteTitleChanged(String title) => noteTitle = title;
 
   void usernameChanged(String username) {
     this.username = username;
@@ -62,6 +80,11 @@ class HomePageController extends BaseController {
 
   void cvvChanged(String cvv) {
     this.cvv = cvv;
+  }
+
+  void noteTitleChanged(String title) => noteTitle = title;
+  void descriptionChanged(String desc) {
+    this.desc = desc;
   }
 
   void getAllAccounts() async {
@@ -110,7 +133,7 @@ class HomePageController extends BaseController {
       Card card = Card();
       card.id = idGenerator.getId();
 
-      card.title = accountTitle;
+      card.title = cardTitle;
       card.nameSurname = nameSurname;
       card.cardNo = cardNo;
       card.validThru = validThru;
@@ -167,5 +190,51 @@ class HomePageController extends BaseController {
   void obscureText() {
     isVisible = !isVisible;
     update();
+  }
+
+  void generatePassword(bool letter, bool isNumber, bool isSpecial) {
+    const length = 20;
+    const letterLowerCase = "abcdefghijklmnopqrstuvwxyz";
+    const letterUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const number = '0123456789';
+    const special = '@#%^*>\$@?/[]=+';
+
+    String chars = "";
+    if (letter) chars += '$letterLowerCase$letterUpperCase';
+    if (isNumber) chars += number;
+    if (isSpecial) chars += special;
+    if (!letter && !isNumber && !isSpecial) {
+      Get.dialog(const GetSnackBar(
+        messageText: Text("En az bir seçenek aktif olmalı!"),
+      ));
+      generatedPasswordController.text = "";
+    } else {
+      String password = List.generate(length, (index) {
+        final indexRandom = Random.secure().nextInt(chars.length);
+        return chars[indexRandom];
+      }).join('');
+      generatedPasswordController.text = password;
+      update();
+    }
+  }
+
+  void copyPasswordToClipboard() {
+    final data = ClipboardData(text: generatedPasswordController.text);
+    Clipboard.setData(data);
+
+    const snackbar = GetSnackBar(message: "Şifre panoya kopyalandı.");
+    Get.dialog(snackbar);
+  }
+
+  void isNumberChanged(bool value) {
+    isNumber.value = value;
+  }
+
+  void isLetterChanged(bool value) {
+    isLetter.value = value;
+  }
+
+  void isSpecialChanged(bool value) {
+    isSpecial.value = value;
   }
 }
