@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:get/route_manager.dart';
 import 'package:keep_word/controllers/home/home_page_controller.dart';
+import 'package:keep_word/models/text/input_text_model.dart';
 
 class HomePage extends GetView<HomePageController> {
   const HomePage({super.key});
@@ -408,6 +408,12 @@ Future<Object?> showAddCardDialog(
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
+                        inputFormatters: [
+                          MaskedTextInputFormatter(
+                            mask: 'xxxx-xxxx-xxxx-xxxx',
+                            separator: '-',
+                          ),
+                        ],
                         keyboardType: TextInputType.datetime,
                         decoration: const InputDecoration(
                             hintText: "Son Kullanım Tarihi"),
@@ -416,6 +422,7 @@ Future<Object?> showAddCardDialog(
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
+                        maxLength: 3,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(hintText: "CVV"),
                         onChanged: controller.cvvChanged),
@@ -446,6 +453,7 @@ Future<Object?> showAddNoteDialog(
     context: context,
     pageBuilder: ((context, animation, secondaryAnimation) {
       return Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text("Not"),
         ),
@@ -455,19 +463,6 @@ Future<Object?> showAddNoteDialog(
               child: Column(
                 children: [
                   Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.close,
-                          ),
-                          onPressed: () {
-                            Get.back();
-                          },
-                        ),
-                      )),
-                  Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
                         decoration: const InputDecoration(hintText: "Başlık"),
@@ -476,7 +471,7 @@ Future<Object?> showAddNoteDialog(
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: TextFormField(
-                        minLines: 3,
+                        minLines: 2,
                         maxLines: 5,
                         decoration: const InputDecoration(hintText: "Not"),
                         onChanged: controller.descriptionChanged),
@@ -507,6 +502,7 @@ Future<Object?> showGeneratePasswordDialog(
     context: context,
     pageBuilder: ((context, animation, secondaryAnimation) {
       return Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text("Parola"),
         ),
@@ -533,19 +529,7 @@ Future<Object?> showGeneratePasswordDialog(
                               borderSide: const BorderSide(color: Colors.blue),
                             ),
                             suffixIcon: IconButton(
-                                onPressed: () {
-                                  final data = ClipboardData(
-                                      text: controller
-                                          .generatedPasswordController.text);
-                                  Clipboard.setData(data);
-
-                                  const snackbar =
-                                      SnackBar(content: Text("Password Copy"));
-
-                                  ScaffoldMessenger.of(context)
-                                    ..removeCurrentSnackBar()
-                                    ..showSnackBar(snackbar);
-                                },
+                                onPressed: controller.copyPasswordToClipboard,
                                 icon: const Icon(Icons.copy))),
                       ),
                     ),
